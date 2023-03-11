@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <rosparam file = "$(find reto_final)/config/params.yaml" command = "load"  />
+
+    <node name="Input" pkg="reto_final" type="input.py" output="screen"/>
+    <node name="Controller" pkg="reto_final" type="controller.py" output="screen"/>
+
+    <node name="motor" pkg="rosserial_python" type="serial_node.py">
+        <param name="port"	type="string"	value="/dev/ttyACM0"/>   
+    </node>
+
+    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" output="screen"  args="/set_point/input /motor_input/input /motor_output/output" />
+    
+</launch>

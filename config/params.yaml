@@ -1,0 +1,14 @@
+initial_pos : 0
+boolean : True
+step : 0.01
+max_value : 1
+min_value : -1
+lon_1 : 10
+lon_2 : 15
+function : "trg"
+
+controller_kp: 0.03
+controller_kd: 0.02
+controller_ki: 0.01
+
+sampling: 100
