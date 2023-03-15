@@ -14,6 +14,6 @@
         <param name="reto_final/motor_input" type="string" value="reto_final/motor_input"/>
     </node>
 
-    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" output="screen" args="/set_point/input /motor_input/input /motor_output/output" />
+    <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" output="screen" args="/set_point/input /motor_input/input /motor_input/tm /motor_output/output" />
     
 </launch>

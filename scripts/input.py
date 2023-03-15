@@ -23,6 +23,11 @@ def cuadrada():
  	actual_value = (direction*(max_value)) or (min_value)
  	return actual_value
 
+def constant():
+	global lon_top, actual_value
+	actual_value = lon_top 
+	return actual_value
+
 def get_params():
 	global step, max_value, min_value, lon_top, lon_bottom, f_s
 	step = rospy.get_param("step", 0.01)
@@ -42,7 +47,7 @@ if __name__ == "__main__":
 	rospy.init_node("Input")
 	rate = rospy.Rate(200)
 
-	fcn = {"trg": triangle, "crd": cuadrada}
+	fcn = {"trg": triangle, "crd": cuadrada, "cons": constant}
 
 	msg_toSend = set_point()
 	init_time = rospy.get_time()

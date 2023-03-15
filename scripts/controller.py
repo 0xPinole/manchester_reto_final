@@ -13,16 +13,17 @@ def pid_control(target_value, current_value):
 
     error = target_value - current_value
 
-    integral += error * dt
-    integral = np.clip(integral, -34, 34) # limite la acumulacion
-    try: 
-        derivative = (error - last_error) / dt
-    except: 
-        derivative = 0
+    integral += error
+    integral = np.clip(integral, 0, 35) # limite la acumulacion
+     
+    derivative = error - last_error
 
-    output = kp * error + ki * integral + kd * derivative
+    proportional = error*(not (target_value > 0 and error < 0) or (target_value < 0 and error > 0))
+
+    output = (kp * proportional) + (ki * integral) + (kd * derivative)
+    output = output*(not (target_value > 0 and error < 0) or (target_value < 0 and error > 0))
+
     last_error = error
-
     return output
 
 def caract_motor(x):
@@ -59,13 +60,13 @@ def get_params():
 if __name__=='__main__':
     global motor_input_msg, motor_output_msg, setpoint_msg, dt, is_pid
 
-    rt = 50
+    rt = 16
     dt = 1/rt
-    v_range = 35
 
     motor_input_msg = motor_input()
     motor_output_msg = motor_output()
     setpoint_msg = set_point()
+    flag_tm = True
 
     rospy.init_node("Controller")
     rate = rospy.Rate(rt)
@@ -76,8 +77,18 @@ if __name__=='__main__':
 
     while not rospy.is_shutdown():
         get_params()
-        motor_input_msg.input = max(min((caract_motor(pid_control(setpoint_msg.input, motor_output_msg.output))/255)*is_pid or caract_motor(setpoint_msg.input)/255, 1), -1)
-        motor_input_msg.tm = setpoint_msg.tm
+        #motor_input_msg.input = max(min((caract_motor(pid_control(setpoint_msg.input, motor_output_msg.output))/255)*is_pid or caract_motor(setpoint_msg.input)/255, 1), -1)
+        if(setpoint_msg.input < 0):
+            temp = -1
+        else: 
+            temp = 1
+        #motor_input_msg.input = temp*pid_control(abs(setpoint_msg.input), abs(motor_output_msg.output))/35
+        if (is_pid):
+            motor_input_msg.input = temp*pid_control(abs(setpoint_msg.input), abs(motor_output_msg.output))/35
+        else:
+            motor_input_msg.input = setpoint_msg.input/35
+        motor_input_msg.tm = flag_tm*35 or -35
+        flag_tm = not flag_tm
         pub_2.publish(motor_input_msg)
 
         rate.sleep()
