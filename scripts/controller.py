@@ -8,12 +8,12 @@ from reto_final.msg import motor_output
 integral = 0
 last_error = 0
 v_max = 35
-flag_tm = True
 rt = 10
 dt = 0.1
 
 def pid_control(target_value, current_value):
     global integral, last_error
+    global motor_input_msg, motor_output_msg, setpoint_msg, kp, ki, kd, is_pid, A, flag_tm, motor_input_msg, caract
 
     error = target_value - current_value
 
@@ -38,19 +38,19 @@ def caract_motor(x):
     return np.clip(pwm, 1, 35)/35
 
 def setpoint_subscriber(msg):
-    global setpoint_msg
+    global motor_input_msg, motor_output_msg, setpoint_msg, kp, ki, kd, is_pid, A, flag_tm, motor_input_msg, caract
     setpoint_msg.input = msg.input
     setpoint_msg.tm = msg.tm
 
 
 def motor_output_subscriber(msg):
-    global motor_output_msg
+    global motor_input_msg, motor_output_msg, setpoint_msg, kp, ki, kd, is_pid, A, flag_tm, motor_input_msg, caract
     motor_output_msg.output = msg.output
     motor_output_msg.tm = msg.tm
     motor_output_msg.st = msg.st
 
 def get_params():
-    global kp, ki, kd, is_pid, A, flag_tm, motor_input_msg
+    global motor_input_msg, motor_output_msg, setpoint_msg, kp, ki, kd, is_pid, A, flag_tm, motor_input_msg, caract
     kp = rospy.get_param("controller_kp", 1)
     kd = rospy.get_param("controller_kd", 1)
     ki = rospy.get_param("controller_ki", 1)
@@ -58,21 +58,24 @@ def get_params():
     is_pid = rospy.get_param("pid", True) 
     caract = rospy.get_param("caract", False)
 
-
     motor_input_msg.tm = flag_tm*v_max or -v_max
     flag_tm = not flag_tm
 
     return True
 
 if __name__=='__main__':
-    global motor_input_msg, motor_output_msg, setpoint_msg
-    
+    global motor_input_msg, motor_output_msg, setpoint_msg, kp, ki, kd, is_pid, A, flag_tm, motor_input_msg, caract
+    flag_tm = True
+
     motor_input_msg = motor_input()
     motor_output_msg = motor_output()
     setpoint_msg = set_point()
 
+    get_params()
+
     rospy.init_node("Controller")
     rate = rospy.Rate(rt)
+
 
     rospy.Subscriber("set_point", set_point, setpoint_subscriber)
     rospy.Subscriber("motor_output", motor_output, motor_output_subscriber)

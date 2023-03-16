@@ -4,7 +4,6 @@ import numpy as np
 from reto_final.msg import set_point
 
 counter = 0
-actual_time = 0
 
 def triangle():
     global actual_value, direction
@@ -30,7 +29,7 @@ def constant():
 	return actual_value
 
 def sinusoidal():
-	global actual_value
+	global actual_value, actual_time
 	actual_value = (max_value - min_value)/2 * np.sin(2 * np.pi * f * actual_time) + (max_value + min_value)/2
 	return actual_value
 
@@ -46,6 +45,7 @@ def get_params():
 
 if __name__ == "__main__":
 	global actual_value, direction, step, max_value, min_value, f_s, actual_time
+	actual_time = 0
 	get_params()
 	actual_value = rospy.get_param("initial_pos", 0)
 	direction = True
