@@ -3,15 +3,15 @@
 #include "motor_output.h"
 #include <digitalWriteFast.h>
 
-const int EncA = 2;       //  Entrada encoder A 
-const int EncB = 3;       //  Entrada encoder B
-const int In1 = 4;        //  Puente H 1 
-const int In2 = 5;        //  Puente H 2 
-const int EnA = 11;       //  PWM
+const int EncA = 2;
+const int EncB = 3;
+const int In1 = 4;
+const int In2 = 5;
+const int EnA = 11;
 const float resolution = 0.0109986;  //Definir resolución del encoder - radianes
 
 bool flag = true;
-float sgn_ros, dir = 0, last_dir = 0;
+float sgn_ros, dir = 1, last_dir = 1;
 volatile long counter = 0, tick_cn = 0;
 volatile float pos = 0, pos_last = 0, velocity = 0, out_vel = 0, last_vel = 0, max_vel = 0;
 volatile bool BSet = 0, ASet = 0;
@@ -76,7 +76,7 @@ void Encoder() {
   pos = counter * resolution;
 }
 
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER1_COMPA_vect){
   velocity = abs(pos - pos_last) / 0.02; //min_delta_time =  0.00053
   if(tick_cn > 0){
     tick_cn --;
