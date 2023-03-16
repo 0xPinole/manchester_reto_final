@@ -1,13 +1,14 @@
 initial_pos : 15
-step : 0.1
+step : 0.025
 max_value : 20
 min_value : 10
 lon_top : 20
-lon_bottom : 15
-function : "crd"
+lon_bottom : 10
+function : "trg"
 
 controller_kp: 0.55
-controller_kd: 0
-controller_ki: 0
+controller_kd: 0.001
+controller_ki: 0.22
+ganancia: 2
 
 pid: True

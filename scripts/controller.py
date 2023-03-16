@@ -7,24 +7,24 @@ from reto_final.msg import motor_output
 
 integral = 0
 last_error = 0
+v_max = 35
+flag_tm = True
+rt = 10
+dt = 0.1
 
 def pid_control(target_value, current_value):
-    global integral, last_error, kp, ki, kd, dt
+    global integral, last_error
 
     error = target_value - current_value
 
-    integral += error
+    integral += error * dt
     integral = np.clip(integral, 0, 35) # limite la acumulacion
      
-    derivative = error - last_error
-
-    proportional = error*(not (target_value > 0 and error < 0) or (target_value < 0 and error > 0))
-
-    output = (kp * proportional) + (ki * integral) + (kd * derivative)
-    output = output*(not (target_value > 0 and error < 0) or (target_value < 0 and error > 0))
-
+    derivative = (error - last_error)/0.1
+    output = np.clip(((kp * error) + (ki * integral) + (kd * derivative))*A, 1, 35)
     last_error = error
-    return output
+
+    return output/35
 
 def caract_motor(x):
     v1 = 0.000007199
@@ -51,44 +51,43 @@ def motor_output_subscriber(msg):
     motor_output_msg.st = msg.st
 
 def get_params():
-    global kp, ki, kd, is_pid
+    global kp, ki, kd, is_pid, A, flag_tm, motor_input_msg
     kp = rospy.get_param("controller_kp", 1)
     kd = rospy.get_param("controller_kd", 1)
     ki = rospy.get_param("controller_ki", 1)
+    A = rospy.get_param("ganancia", 1)
     is_pid = rospy.get_param("pid", True)
 
+    motor_input_msg.tm = flag_tm*v_max or -v_max
+    flag_tm = not flag_tm
+
+    return True
+
 if __name__=='__main__':
-    global motor_input_msg, motor_output_msg, setpoint_msg, dt, is_pid
-
-    rt = 16
-    dt = 1/rt
-
+    global motor_input_msg, motor_output_msg, setpoint_msg
+    
     motor_input_msg = motor_input()
     motor_output_msg = motor_output()
     setpoint_msg = set_point()
-    flag_tm = True
 
     rospy.init_node("Controller")
     rate = rospy.Rate(rt)
 
     rospy.Subscriber("set_point", set_point, setpoint_subscriber)
     rospy.Subscriber("motor_output", motor_output, motor_output_subscriber)
-    pub_2 = rospy.Publisher("motor_input", motor_input, queue_size = 10)
+    pub_2 = rospy.Publisher("motor_input", motor_input, queue_size = 1)
+
 
     while not rospy.is_shutdown():
         get_params()
-        #motor_input_msg.input = max(min((caract_motor(pid_control(setpoint_msg.input, motor_output_msg.output))/255)*is_pid or caract_motor(setpoint_msg.input)/255, 1), -1)
-        if(setpoint_msg.input < 0):
-            temp = -1
-        else: 
-            temp = 1
-        #motor_input_msg.input = temp*pid_control(abs(setpoint_msg.input), abs(motor_output_msg.output))/35
+
+        direction = (setpoint_msg.input >= 0) or -1
+        
         if (is_pid):
-            motor_input_msg.input = temp*pid_control(abs(setpoint_msg.input), abs(motor_output_msg.output))/35
+            motor_input_msg.input = pid_control(abs(setpoint_msg.input), abs(motor_output_msg.output))*direction
         else:
-            motor_input_msg.input = setpoint_msg.input/35
-        motor_input_msg.tm = flag_tm*35 or -35
-        flag_tm = not flag_tm
+            motor_input_msg.input = setpoint_msg.input/v_max
+
         pub_2.publish(motor_input_msg)
 
         rate.sleep()

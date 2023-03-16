@@ -4,6 +4,7 @@ import numpy as np
 from reto_final.msg import set_point
 
 counter = 0
+actual_time = 0
 
 def triangle():
     global actual_value, direction, step, max_value, min_value
@@ -28,8 +29,13 @@ def constant():
 	actual_value = lon_top 
 	return actual_value
 
+def sinusoidal():
+	global actual_value, step, counter
+
+	return actual_value
+
 def get_params():
-	global step, max_value, min_value, lon_top, lon_bottom, f_s
+	global step, max_value, min_value, lon_top, lon_bottom, f_s, actual_time
 	step = rospy.get_param("step", 0.01)
 	lon_top = rospy.get_param("lon_top", 50)
 	lon_bottom = rospy.get_param("lon_bottom", 25)
@@ -47,14 +53,15 @@ if __name__ == "__main__":
 	rospy.init_node("Input")
 	rate = rospy.Rate(200)
 
-	fcn = {"trg": triangle, "crd": cuadrada, "cons": constant}
+	fcn = {"trg": triangle, "crd": cuadrada, "cons": constant, "sin": sinusoidal}
 
 	msg_toSend = set_point()
 	init_time = rospy.get_time()
 
 	while not rospy.is_shutdown():
 		get_params()
-		msg_toSend.tm = rospy.get_time() - init_time
+		actual_time = rospy.get_time() - init_time
+		msg_toSend.tm = actual_time
 		msg_toSend.input = (fcn[f_s])()
 		pub_1.publish(msg_toSend)
 		rate.sleep()
