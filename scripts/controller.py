@@ -34,7 +34,7 @@ def caract_motor(x):
     v1 =  10.14
 
     pwm = v6*pow(x, 5) + v5*pow(x, 4) + v4*pow(x, 3) + v3*pow(x, 2) + v2*x + v1
-    return np.clip(pwm, 1, 35)/35
+    return np.clip(pwm, 1, 255)/255
 
 def setpoint_subscriber(msg):
     global motor_input_msg
@@ -83,9 +83,9 @@ if __name__=='__main__':
             motor_input_msg.input = pid_control(abs(setpoint_msg.input), abs(motor_output_msg.output))*direction
         else:
             if(caract):
-                motor_input_msg.input = direction*caract_motor(setpoint_msg.input)/v_max
+                motor_input_msg.input = direction*caract_motor(abs(setpoint_msg.input))
             else:
-                motor_input_msg.input = setpoint_msg.input/v_max
+                motor_input_msg.input = np.clip(setpoint_msg.input/v_max, -1, 1)
 
         pub_2.publish(motor_input_msg)
         rate.sleep()

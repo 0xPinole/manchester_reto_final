@@ -3,7 +3,7 @@ max_value : 20
 min_value : 10
 lon_top : 20
 lon_bottom : 10
-frecuencia: 0.5
+frecuencia: 0.25
 function : "sin"
 
 controller_kp: 0.55
