@@ -27,16 +27,15 @@ def pid_control(target_value, current_value):
     return output/35
 
 def caract_motor(x):
-    v1 = 0.000007199
-    v2 = 0.0006643
-    v3 = 0.02327
-    v4 = 0.3739
-    v5 = 2.622
-    v6 = 3.486
-    v7 = 15.52
+    v6 =  0.00009367
+    v5 = -0.00709
+    v4 =  0.1954
+    v3 = -2.28
+    v2 =  11.7
+    v1 =  10.14
 
-    pwm = v1*pow(x, 6) - v2*pow(x, 5) + v3*pow(x, 4) - v4*pow(x, 3) + v5*pow(x, 2) - v6*x + v7
-    return pwm
+    pwm = v6*pow(x, 5) + v5*pow(x, 4) + v4*pow(x, 3) + v3*pow(x, 2) + v2*x + v1
+    return np.clip(pwm, 1, 35)/35
 
 def setpoint_subscriber(msg):
     global setpoint_msg
@@ -56,7 +55,9 @@ def get_params():
     kd = rospy.get_param("controller_kd", 1)
     ki = rospy.get_param("controller_ki", 1)
     A = rospy.get_param("ganancia", 1)
-    is_pid = rospy.get_param("pid", True)
+    is_pid = rospy.get_param("pid", True) 
+    caract = rospy.get_param("caract", False)
+
 
     motor_input_msg.tm = flag_tm*v_max or -v_max
     flag_tm = not flag_tm
@@ -86,7 +87,10 @@ if __name__=='__main__':
         if (is_pid):
             motor_input_msg.input = pid_control(abs(setpoint_msg.input), abs(motor_output_msg.output))*direction
         else:
-            motor_input_msg.input = setpoint_msg.input/v_max
+            if(caract):
+                motor_input_msg.input = direction*caract_motor(setpoint_msg.input)/v_max
+            else:
+                motor_input_msg.input = setpoint_msg.input/v_max
 
         pub_2.publish(motor_input_msg)
 

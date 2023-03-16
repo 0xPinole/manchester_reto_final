@@ -7,7 +7,7 @@ counter = 0
 actual_time = 0
 
 def triangle():
-    global actual_value, direction, step, max_value, min_value
+    global actual_value, direction
     actual_value += (direction*(-step)) or (step)
     if (actual_value > max_value):
         direction = True
@@ -16,7 +16,7 @@ def triangle():
     return actual_value
 
 def cuadrada():
- 	global counter, actual_value, direction, step, lon_top, lon_bottom
+ 	global counter, actual_value, direction
  	if(counter <= 0):
  		counter = (direction*(lon_bottom)) or (lon_top)
  		direction = not direction
@@ -25,26 +25,27 @@ def cuadrada():
  	return actual_value
 
 def constant():
-	global lon_top, actual_value
-	actual_value = lon_top 
+	global actual_value
+	actual_value = max_value 
 	return actual_value
 
 def sinusoidal():
-	global actual_value, step, counter
-
+	global actual_value
+	actual_value = (max_value - min_value)/2 * np.sin(2 * np.pi * f * actual_time) + (max_value + min_value)/2
 	return actual_value
 
 def get_params():
-	global step, max_value, min_value, lon_top, lon_bottom, f_s, actual_time
+	global step, max_value, min_value, lon_top, lon_bottom, f_s, actual_time, f
 	step = rospy.get_param("step", 0.01)
 	lon_top = rospy.get_param("lon_top", 50)
 	lon_bottom = rospy.get_param("lon_bottom", 25)
 	max_value = rospy.get_param("max_value", 20)
 	min_value = rospy.get_param("min_value", -20)
 	f_s = rospy.get_param("function", "crd")
+	f = rospy.get_param("frecuencia", 1)
 
 if __name__ == "__main__":
-	global actual_value, direction, step, max_value, min_value, f_s
+	global actual_value, direction, step, max_value, min_value, f_s, actual_time
 	get_params()
 	actual_value = rospy.get_param("initial_pos", 0)
 	direction = True
